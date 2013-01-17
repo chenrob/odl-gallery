@@ -1,8 +1,12 @@
 (function ($) {
+	var STEP_AMOUNT = 321;
+	var IMAGES_IN_WINDOW = 7;
+	var PREV_PAGE = 1;
+	var NEXT_PAGE = -1;
+	
 	var $container;
 	var $thumbnails, $paginationButtons, $pageNext, $pagePrev, $thumbWrap;
-	var $mainImg;
-	var $skuOptions;
+	var $mainImgs;
 	
 	var methods = {
 		init: function() {
@@ -14,9 +18,7 @@
 			$pagePrev = this.find('.thumb-prev');
 			$thumbWrap = this.find('.thumb-wrap');
 			
-			$mainImg = this.find('.main-img');
-			
-			$skuOptions = this.find('.preload-sku-img');
+			$mainImgs = this.find('.main-img');
 			
 			$thumbnails.click(function() { changeThumbnail($(this)); });
 			$paginationButtons.click(function() { paginate($(this)); });
@@ -26,19 +28,29 @@
 		},
 		destroy: function() {
 			$(window).unbind('refresh.sku.color', changeSku);
+			return this;
 		}
 	};
 	
+	var changeImage = function(arg) {
+		var filter = '[data-sku-id="' + arg + '"]';
+		
+		if (typeof arg === 'object')
+			filter = '[src="' + arg.attr('src') + '"]';
+		
+		$mainImgs.filter(filter).removeClass('hide').siblings().addClass('hide');
+	};
+	
 	var changeSku = function(e, skuID) {
-		console.log('changesku');
+		//change to first page
+		var cond;
+		do { cond = changePage(PREV_PAGE); } while(cond);
+		
+		//always force first image first
+		changeThumbnail($thumbnails.first());
+		
 		if (skuID)
-		{
-			$mainImg.attr('src', $skuOptions.find('[data-sku-id=' + skuID + ']').attr('src'));
-		}
-		else //restore previous image
-		{
-			$mainImg.attr('src', $thumbWrap.find('.selected').attr('src'));
-		}
+			changeImage(skuID);
 	};
 	
 	var changeThumbnail = function($this) {
@@ -47,13 +59,19 @@
 		
 		$this.addClass('selected').siblings().removeClass('selected');
 		
-		$mainImg.attr('src', $this.attr('src'));
+		changeImage($this);
 	};
 	
-	var STEP_AMOUNT = 321;
-	var IMAGES_IN_WINDOW = 7;
 	var paginate = function($this) {
-		var mode = $this.hasClass('thumb-prev') ? 1 : -1;
+		var mode = $this.hasClass('thumb-prev') ? PREV_PAGE : NEXT_PAGE;
+		changePage(mode);
+	};
+	
+	//returns whether we can continue to change page in the mode
+	var changePage = function(mode) {
+		if (($pageNext.prop('disabled') && mode == NEXT_PAGE)
+		 || ($pagePrev.prop('disabled') && mode == PREV_PAGE))
+			return false;
 		
 		//shift positioning of .thumb-wrap
 		//need to manually adjust positioning instead of doing jQuery's blah.css('top', '+=321')
@@ -69,8 +87,13 @@
 		page -= mode;
 		$thumbWrap.data('page', page);
 		
-		$pageNext.prop('disabled', ((page + 1) * IMAGES_IN_WINDOW >= $thumbnails.length));
-		$pagePrev.prop('disabled', (page == 0));
+		var disableNextPage = ((page + 1) * IMAGES_IN_WINDOW >= $thumbnails.length);
+		var disablePrevPage = (page == 0);
+		
+		$pageNext.prop('disabled', disableNextPage);
+		$pagePrev.prop('disabled', disablePrevPage);
+		
+		return mode == PREV_PAGE ? !disablePrevPage : !disableNextPage;
 	};
 	
 	$.fn.gallery = function(method) {
