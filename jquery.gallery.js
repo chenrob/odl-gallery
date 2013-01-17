@@ -28,18 +28,26 @@
 			$mainImgs = this.find('.main-img');
 			
 			$magImg = this.find('.mag-img');
-			if ($magImg.length && $magImg.width() > MIN_MAG_IMG_WIDTH)
+			if ($magImg.length)
 			{
-				$wrap = $('<a></a>')
-					.attr('href', $magImg.attr('src'))
-					.attr('src', $mainImgs.first().attr('src'))
-					.addClass('mag-wrap');
-				$mainImgs.first().wrap($wrap);	
+				$magImg.imagesLoaded({
+					done: function($images) {
+						if ($magImg.width() > MIN_MAG_IMG_WIDTH)
+						{
+							$wrap = $('<a></a>')
+								.attr('href', $magImg.attr('src'))
+								.attr('src', $mainImgs.first().attr('src'))
+								.addClass('mag-wrap');
+							$mainImgs.first().wrap($wrap);	
 
-				//since we wrapped the first image, need to reset the $mainImgs var
-				$mainImgs = $container.find('.main-image').children();
-				
-				$container.find('.mag-wrap').loupe({width: 300, height: 300, loupe: 'loupe gallery'});
+							//since we wrapped the first image, need to reset the $mainImgs var
+							$mainImgs = $container.find('.main-image').children();
+							window.robert = $mainImgs;
+							
+							$container.find('.mag-wrap').loupe({width: 300, height: 300, loupe: 'loupe gallery'});
+						}
+					}
+				});
 			}
 			
 			$thumbnails.click(function() { changeThumbnail($(this)); });
