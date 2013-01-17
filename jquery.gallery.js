@@ -3,6 +3,8 @@
 	var IMAGES_IN_WINDOW = 7;
 	var PREV_PAGE = 1;
 	var NEXT_PAGE = -1;
+	var RIGHT_KEY = 39;
+	var LEFT_KEY = 37;
 	
 	var $container;
 	var $thumbnails, $paginationButtons, $pageNext, $pagePrev, $thumbWrap;
@@ -22,14 +24,31 @@
 			
 			$thumbnails.click(function() { changeThumbnail($(this)); });
 			$paginationButtons.click(function() { paginate($(this)); });
-			$(window).bind('refresh.sku.color', changeSku);
 			
+			if ($thumbnails.length)
+			{
+				$(window).bind('refresh.sku.color', changeSku);
+				$(document).bind('keydown', keydown);
+			}
 			return this;
 		},
 		destroy: function() {
 			$(window).unbind('refresh.sku.color', changeSku);
+			$(document).unbind('keydown');
 			return this;
 		}
+	};
+	
+	var keydown = function(e) {
+		var $current = $thumbnails.filter('.selected');
+		var $target = null;
+		if (event.which == RIGHT_KEY)
+			$target = $current.next();
+		else if (event.which == LEFT_KEY)
+			$target = $current.prev();
+		
+		if ($target.length)
+			changeThumbnail($target);
 	};
 	
 	var changeImage = function(arg) {
