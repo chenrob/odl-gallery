@@ -2,6 +2,7 @@
 	var $container;
 	var $thumbnails, $paginationButtons, $pageNext, $pagePrev, $thumbWrap;
 	var $mainImg;
+	var $skuOptions;
 	
 	var methods = {
 		init: function() {
@@ -15,12 +16,32 @@
 			
 			$mainImg = this.find('.main-img');
 			
-			$thumbnails.click(function() { thumbnailOnClick($(this)); });
-			$paginationButtons.click(function() { paginationButtonOnClick($(this)); });
+			$skuOptions = this.find('.preload-sku-img');
+			
+			$thumbnails.click(function() { changeThumbnail($(this)); });
+			$paginationButtons.click(function() { paginate($(this)); });
+			$(window).bind('refresh.sku.color', changeSku);
+			
+			return this;
+		},
+		destroy: function() {
+			$(window).unbind('refresh.sku.color', changeSku);
 		}
 	};
 	
-	var thumbnailOnClick = function($this) {
+	var changeSku = function(e, skuID) {
+		console.log('changesku');
+		if (skuID)
+		{
+			$mainImg.attr('src', $skuOptions.find('[data-sku-id=' + skuID + ']').attr('src'));
+		}
+		else //restore previous image
+		{
+			$mainImg.attr('src', $thumbWrap.find('.selected').attr('src'));
+		}
+	};
+	
+	var changeThumbnail = function($this) {
 		if ($this.hasClass('selected'))
 			return;
 		
@@ -31,7 +52,7 @@
 	
 	var STEP_AMOUNT = 321;
 	var IMAGES_IN_WINDOW = 7;
-	var paginationButtonOnClick = function($this) {
+	var paginate = function($this) {
 		var mode = $this.hasClass('thumb-prev') ? 1 : -1;
 		
 		//shift positioning of .thumb-wrap
