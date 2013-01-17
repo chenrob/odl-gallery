@@ -6,9 +6,14 @@
 	var RIGHT_KEY = 39;
 	var LEFT_KEY = 37;
 	
+	//sometimes, mag img is not available -- this allows us to detect the "not available" image
+	//that is served with dimensions smaller than what we're expecting
+	var MIN_MAG_IMG_WIDTH = 900;
+	
 	var $container;
 	var $thumbnails, $paginationButtons, $pageNext, $pagePrev, $thumbWrap;
 	var $mainImgs;
+	var $magImg;
 	
 	var methods = {
 		init: function() {
@@ -21,6 +26,21 @@
 			$thumbWrap = this.find('.thumb-wrap');
 			
 			$mainImgs = this.find('.main-img');
+			
+			$magImg = this.find('.mag-img');
+			if ($magImg.length && $magImg.width() > MIN_MAG_IMG_WIDTH)
+			{
+				$wrap = $('<a></a>')
+					.attr('href', $magImg.attr('src'))
+					.attr('src', $mainImgs.first().attr('src'))
+					.addClass('mag-wrap');
+				$mainImgs.first().wrap($wrap);	
+
+				//since we wrapped the first image, need to reset the $mainImgs var
+				$mainImgs = $container.find('.main-image').children();
+				
+				$container.find('.mag-wrap').loupe({width: 300, height: 300, loupe: 'loupe gallery'});
+			}
 			
 			$thumbnails.click(function() { changeThumbnail($(this)); });
 			$paginationButtons.click(function() { paginate($(this)); });
@@ -47,7 +67,7 @@
 		else if (event.which == LEFT_KEY)
 			$target = $current.prev();
 		
-		if ($target.length)
+		if ($target && $target.length)
 			changeThumbnail($target);
 	};
 	
@@ -64,18 +84,17 @@
 		//change to first page
 		var cond;
 		do { cond = changePage(PREV_PAGE); } while(cond);
-		
+
 		//always force first image first
-		changeThumbnail($thumbnails.first());
-		
+		//but only do it if there is a valid skuID
 		if (skuID)
+		{
+			changeThumbnail($thumbnails.first());
 			changeImage(skuID);
+		}
 	};
 	
 	var changeThumbnail = function($this) {
-		if ($this.hasClass('selected'))
-			return;
-		
 		$this.addClass('selected').siblings().removeClass('selected');
 		
 		changeImage($this);
