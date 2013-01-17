@@ -69,7 +69,8 @@
 	
 	//returns whether we can continue to change page in the mode
 	var changePage = function(mode) {
-		if (($pageNext.prop('disabled') && mode == NEXT_PAGE)
+		if (!$paginationButtons.length
+		 || ($pageNext.prop('disabled') && mode == NEXT_PAGE)
 		 || ($pagePrev.prop('disabled') && mode == PREV_PAGE))
 			return false;
 		
